@@ -25,11 +25,54 @@ const client = new MongoClient(uri, {
 });
 
 // Create a async function to all others activity
+
+// jwt token 
+function verifyJWT(req, res, next){
+  const authHeader = req.headers.authorization;
+
+  if(!authHeader){
+      return res.status(401).send({message: 'unauthorized access'});
+  }
+  const token = authHeader.split(' ')[1];
+
+  jwt.verify(token, process.env.SECRET_KEY, function(err, decoded){
+      if(err){
+          return res.status(403).send({message: 'Forbidden access'});
+      }
+      req.decoded = decoded;
+      next();
+  })
+}
+
+
+
+
+
+
+
 async function run() {
   try {
     // Create Database to store Data
     const userCollection = client.db("programmingHeroTask").collection("users");
     const billCollection = client.db("programmingHeroTask").collection("bills");
+
+
+    // jwt token start
+    app.post('/jwt', (req, res) =>{
+      const user = req.body;
+      const token = jwt.sign(user, process.env.SECRET_KEY, { expiresIn: '7d'})
+      res.send({token})
+  })
+
+    //jwt token end
+
+
+
+
+
+
+
+
 
     // user registration
     app.post("/api/registration", async (req, res) => {
@@ -133,7 +176,7 @@ async function run() {
 
     // get all bills
 
-    app.get("/api/billing-list", async (req, res) => {
+    app.get("/api/billing-list",verifyJWT, async (req, res) => {
       const page =parseInt(req.query.page);
       const size = parseInt(req.query.size);
       const query = billCollection.find({})
@@ -141,13 +184,12 @@ async function run() {
       const bills = await query.skip(page * size).limit(size).toArray()
       const count = await billCollection.estimatedDocumentCount()
       res.send({count,bills})
-      // const result = await billCollection.find({}).sort({ time: -1 }).toArray();
-      // res.send(result);
+     
     });
 
     // get bill searching
 
-    app.get("/api/billing-list/:search", async (req, res) => {
+    app.get("/api/billing-list/:search",verifyJWT, async (req, res) => {
       const search = req.params.search;
       const page =parseInt(req.query.page);
       const size = parseInt(req.query.size);
