@@ -32,12 +32,14 @@ async function run() {
 
     // Create Database to store Data
     const userCollection = client.db("programmingHeroTask").collection("users");
+    const billCollection = client.db("programmingHeroTask").collection("bills");
 
     // user registration 
     app.post("/api/registration", async (req, res) => {
         const { firstName, lastName, email, password } = req.body;
-      
+        
         const encryptedPassword = await bcrypt.hash(password, 10);
+        console.log(encryptedPassword);
         try {
           const oldUser = await userCollection.findOne({ email : email });
       
@@ -107,6 +109,21 @@ async function run() {
             });
         } catch (error) { }
       });
+
+      // post bills 
+
+      app.post("/api/add-billing",async (req, res) => {
+        const result = await billCollection.insertOne(req.body)
+        if(result.insertedId){
+          res.send({
+            success: true,
+            message : `Success Created ${req.body.fullName}`
+          })
+        }
+        else{
+          res.send({success: false, message: "Can't insert bill"})
+        }
+      })
 
 
 
