@@ -36,7 +36,7 @@ async function run() {
       const { firstName, lastName, email, password } = req.body;
 
       const encryptedPassword = await bcrypt.hash(password, 10);
-      console.log(encryptedPassword);
+      
       try {
         const oldUser = await userCollection.findOne({ email: email });
 
@@ -88,7 +88,7 @@ async function run() {
           }
           return res;
         });
-        console.log(user);
+       
         if (user == "token expired") {
           return res.send({ status: "error", data: "token expired" });
         }
@@ -134,8 +134,17 @@ async function run() {
 
 
     // get all bills
+
+    app.get("/api/billing-list", async (req, res) => {
+      const result = await billCollection.find({}).sort({time:-1}).toArray();
+      res.send(result);
+    })
+
+    // get bill searching
+
     app.get("/api/billing-list/:search", async (req, res) => {
       const search = req.params.search;
+      console.log(search);
       let result
       if(search === ""){
         const result = await billCollection.find({}).sort({time:-1}).toArray();
@@ -152,6 +161,20 @@ async function run() {
       }
      
     });
+
+
+    //delete data
+
+    app.delete("/api/delete-billing/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await billCollection.deleteOne({ _id: ObjectId(id) });
+      if(result.deletedCount){
+        res.send({
+          success: true,
+          data: result,
+        });
+      }
+      });
 
 
 
