@@ -131,6 +131,34 @@ async function run() {
         res.send({success: false, message: "Can't insert bill"})
       }
     });
+
+
+    // get all bills
+    app.get("/api/billing-list/:search", async (req, res) => {
+      const search = req.params.search;
+      let result
+      if(search === ""){
+        const result = await billCollection.find({}).sort({time:-1}).toArray();
+        res.send(result);
+      }else{
+        result = await billCollection.find({
+          $or: [
+             { fullName: { $regex: search, $options: "i" } },
+             { email: { $regex: search, $options: "i" } },
+             { phone: { $regex: search, $options: "i" } }
+          ],
+       }).sort({time:-1}).toArray();
+       return res.send(result);
+      }
+     
+    });
+
+
+
+
+
+
+
   } finally {
     // await client.close();
   }
