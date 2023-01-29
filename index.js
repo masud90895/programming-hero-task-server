@@ -13,6 +13,9 @@ app.use(cors());
 // backend to client data sent
 app.use(express.json());
 
+//jwt token
+const secretKey = process.env.SECRET_KEY 
+
 
 // Connect With MongoDb Database
 const uri =process.env.MONGODB_URI;
@@ -51,6 +54,28 @@ async function run() {
         } catch (error) {
           res.send({ status: "error" });
         }
+      });
+
+
+      app.post("/api/login", async (req, res) => {
+        const { email, password } = req.body;
+      
+        const user = await userCollection.findOne({ email });
+        if (!user) {
+          return res.json({ error: "User Not found" });
+        }
+        if (await bcrypt.compare(password, user.password)) {
+          const token = jwt.sign({ email: user.email }, secretKey, {
+            expiresIn: "7d",
+          });
+      
+          if (res.status(201)) {
+            return res.json({ status: "ok", data: token });
+          } else {
+            return res.json({ error: "error" });
+          }
+        }
+        res.json({ status: "error", error: "InvAlid Password" });
       });
 
 
