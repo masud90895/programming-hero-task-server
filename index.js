@@ -137,6 +137,7 @@ async function run() {
       const page =parseInt(req.query.page);
       const size = parseInt(req.query.size);
       const query = billCollection.find({})
+      
       const bills = await query.skip(page * size).limit(size).toArray()
       const count = await billCollection.estimatedDocumentCount()
       res.send({count,bills})
@@ -154,36 +155,15 @@ async function run() {
       if (search === "") {
         const result = await billCollection.find({}).sort({ time: -1 })
         const bills = await result.skip(page * size).limit(size).toArray()
-            const count = await billCollection.estimatedDocumentCount();
+            const count = bills.length ;
             res.send({ bills, count });
       } else {
         result = await billCollection.find({$or: [{ fullName: { $regex: search, $options: "i" } },{ email: { $regex: search, $options: "i" } },{ phone: { $regex: search, $options: "i" } },],}).sort({ time: -1 })
         const bills = await result.skip(page * size).limit(size).toArray()
-        const count = await billCollection.estimatedDocumentCount();
+        const count = bills.length ;
         return res.send({ bills, count });
       }
     });
-
-    // app.get("/api/billing-list/:search", async (req, res) => {
-    //   const search = req.params.search;
-    //   const page = parseInt(req.query.page);
-    //   const size = parseInt(req.query.size);
-    //   let result;
-    //   if (search === "") {
-    //     const result = await billCollection.find({}).sort({ time: -1 })
-          
-    //     const bills = await result.skip(page * size).limit(size).toArray()
-    //     const count = await billCollection.estimatedDocumentCount();
-    //     res.send({ bills, count });
-    //   } else {
-    //     result = await billCollection.find({}).sort({ time: -1 })
-          
-    //     const bills = await result.skip(page * size).limit(size).toArray()
-    //     const count = await billCollection.estimatedDocumentCount();
-    //     return res.send({ bills, count });
-    //     // return res.send(result);
-    //   }
-    // });
 
     //delete data
 
