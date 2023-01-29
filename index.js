@@ -36,7 +36,7 @@ async function run() {
       const { firstName, lastName, email, password } = req.body;
 
       const encryptedPassword = await bcrypt.hash(password, 10);
-      
+
       try {
         const oldUser = await userCollection.findOne({ email: email });
 
@@ -88,7 +88,7 @@ async function run() {
           }
           return res;
         });
-       
+
         if (user == "token expired") {
           return res.send({ status: "error", data: "token expired" });
         }
@@ -120,68 +120,87 @@ async function run() {
         time,
         AddedUserEmail,
       };
-      const result = await billCollection.insertOne(addedData)
-      if(result.insertedId){
+      const result = await billCollection.insertOne(addedData);
+      if (result.insertedId) {
         res.send({
           success: true,
-          message : `Success Created ${req.body.fullName}`
-        })
-      }
-      else{
-        res.send({success: false, message: "Can't insert bill"})
+          message: `Success Created ${req.body.fullName}`,
+        });
+      } else {
+        res.send({ success: false, message: "Can't insert bill" });
       }
     });
-
 
     // get all bills
 
     app.get("/api/billing-list", async (req, res) => {
-      const result = await billCollection.find({}).sort({time:-1}).toArray();
+      const result = await billCollection.find({}).sort({ time: -1 }).toArray();
       res.send(result);
-    })
+    });
 
     // get bill searching
 
     app.get("/api/billing-list/:search", async (req, res) => {
       const search = req.params.search;
       console.log(search);
-      let result
-      if(search === ""){
-        const result = await billCollection.find({}).sort({time:-1}).toArray();
+      let result;
+      if (search === "") {
+        const result = await billCollection
+          .find({})
+          .sort({ time: -1 })
+          .toArray();
         res.send(result);
-      }else{
-        result = await billCollection.find({
-          $or: [
-             { fullName: { $regex: search, $options: "i" } },
-             { email: { $regex: search, $options: "i" } },
-             { phone: { $regex: search, $options: "i" } }
-          ],
-       }).sort({time:-1}).toArray();
-       return res.send(result);
+      } else {
+        result = await billCollection
+          .find({
+            $or: [
+              { fullName: { $regex: search, $options: "i" } },
+              { email: { $regex: search, $options: "i" } },
+              { phone: { $regex: search, $options: "i" } },
+            ],
+          })
+          .sort({ time: -1 })
+          .toArray();
+        return res.send(result);
       }
-     
     });
-
 
     //delete data
 
     app.delete("/api/delete-billing/:id", async (req, res) => {
       const id = req.params.id;
       const result = await billCollection.deleteOne({ _id: ObjectId(id) });
-      if(result.deletedCount){
+      if (result.deletedCount) {
         res.send({
           success: true,
           data: result,
         });
       }
-      });
+    });
 
+    // update bill
 
+    app.put("/api/update-billing/:id", async (req, res) => {
+      const id = req.params.id;
 
+      const result = await billCollection.updateOne(
+        { _id: ObjectId(id) },
+        { $set: req.body }
+      );
 
-
-
-
+      if (result.matchedCount) {
+        res.send({
+          success: true,
+          message: `successfully updated ${req.body.name}`,
+          data: result,
+        });
+      } else {
+        res.send({
+          success: false,
+          message: "Couldn't update  the Bill",
+        });
+      }
+    });
   } finally {
     // await client.close();
   }
