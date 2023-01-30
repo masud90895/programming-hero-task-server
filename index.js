@@ -6,7 +6,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 //gitignore
 require("dotenv").config();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 6000;
 
 // used Middleware
 app.use(cors());
@@ -17,7 +17,7 @@ app.use(express.json());
 const secretKey = process.env.SECRET_KEY;
 
 // Connect With MongoDb Database
-const uri = process.env.MONGODB_URI;
+const uri =process.env.MONGODB_URI;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -45,11 +45,6 @@ function verifyJWT(req, res, next){
 }
 
 
-
-
-
-
-
 async function run() {
   try {
     // Create Database to store Data
@@ -63,14 +58,7 @@ async function run() {
       const token = jwt.sign(user, process.env.SECRET_KEY, { expiresIn: '7d'})
       res.send({token})
   })
-
     //jwt token end
-
-
-
-
-
-
 
 
 
@@ -257,3 +245,4 @@ app.get("/", (req, res) => {
 });
 
 app.listen(port, () => console.log(`Server up and running ${port}`));
+
